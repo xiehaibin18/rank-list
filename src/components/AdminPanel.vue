@@ -176,155 +176,190 @@ const onSort = (key) => {
 onBeforeMount(async () => {
   await getHistory()
 })
+
+const panels = ref([
+  { label: 'BPHelper For User', value : 'BFU' },
+  { label: 'BPHelper For Admin', value : 'BFA' },
+  { label: 'List Of DING', value : 'LOD' },
+])
+
+const currentPanel = ref('LOD')
 </script>
 
 <template>
-  <h2>List of DING(9.2 to now)</h2>
-  <div class="table-wrapper">
-    <table class="fl-table">
-      <thead>
-        <tr>
-          <th
-            v-for="(item, idx) in headers"
-            :key="idx"
-            :class="[{ sorted: item.sortKey === sortKey }, sortState[sortKey] === 1 ? 'up' : 'down']"
-            @click="onSort(item.sortKey)"
-          >
-            {{ item.label }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(item, idx) in rankList"
-          :key="idx"
-          :class="{ active: currentUser === item.name }"
-          @click="onPopup($event, item)"
-        >
-          <td>{{ item.name }}</td>
-          <td>{{ item.rate }}</td>
-          <td>{{ item.winningRate }}</td>
-          <td>{{ item.kda }}</td>
-          <td>{{ item.kd }}</td>
-          <td>{{ item.total }}</td>
-          <td>{{ item.win }}</td>
-          <td>{{ item.lose }}</td>
-          <td>{{ item.kill }} ({{ (item.kill / item.total).toFixed(0) }})</td>
-          <td>{{ item.dead }} ({{ (item.dead / item.total).toFixed(0) }})</td>
-          <td>{{ item.assist }} ({{ (item.assist / item.total).toFixed(0) }})</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div
-    v-if="displayPopup"
-    class="popup"
-    :style="{ top: top + 'px', left: left + 'px' }"
+  <label
+    v-for="(item, idx) in panels"
+    :key="idx"
+    :for="item.label.toLowerCase().replaceAll(' ', '-')"
   >
-    <div style="display: flex;">
-      <input
-        type="text"
-        :value="history[currentUser][0].rate"
-        style="width: 2rem; text-align: center;"
-        @change="onChangeRate"
-      >
-      <div class="current-user">
-        {{ currentUser }}
-      </div>
-      <div class="switcher">
-        <label
-          for="win"
-          :class="formData.result === 0 ? 'checked' : ''"
-        >
-          胜
-          <input
-            v-show="false"
-            id="win"
-            v-model="formData.result"
-            type="radio"
-            :value="0"
+    <input
+      :id="item.label.toLowerCase().replaceAll(' ', '-')"
+      v-model="currentPanel"
+      type="radio"
+      :value="item.value"
+    >
+    {{ item.label }}
+  </label>
+  <iframe
+    v-if="currentPanel === 'BFU'"
+    src="https://bphelper-user-1320720418.cos.ap-guangzhou.myqcloud.com/BPHelper%20%E9%80%89%E6%89%8B%E7%89%88.html"
+    frameborder="0"
+    style="position: fixed; bottom: 0; left: 0; width: 100vw; height: calc(100vh - 1.5rem);"
+  />
+  <iframe
+    v-if="currentPanel === 'BFA'"
+    src="https://bphelper-admin-1320720418.cos.ap-guangzhou.myqcloud.com/BPHelper%20%E6%95%99%E7%BB%83%E7%89%88.html"
+    frameborder="0"
+    style="position: fixed; bottom: 0; left: 0; width: 100vw; height: calc(100vh - 1.5rem);"
+  />
+  <template v-if="currentPanel === 'LOD'">
+    <h2>List of DING(9.2 to now)</h2>
+    <div class="table-wrapper">
+      <table class="fl-table">
+        <thead>
+          <tr>
+            <th
+              v-for="(item, idx) in headers"
+              :key="idx"
+              :class="[{ sorted: item.sortKey === sortKey }, sortState[sortKey] === 1 ? 'up' : 'down']"
+              @click="onSort(item.sortKey)"
+            >
+              {{ item.label }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(item, idx) in rankList"
+            :key="idx"
+            :class="{ active: currentUser === item.name }"
+            @click="onPopup($event, item)"
           >
-        </label>
-        <label
-          for="lose"
-          :class="formData.result === 1 ? 'checked' : ''"
-        >
-          负
-          <input
-            v-show="false"
-            id="lose"
-            v-model="formData.result"
-            type="radio"
-            :value="1"
-          >
-        </label>
-      </div>
-      <div class="input-group">
-        <label for="kill">
-          K
-          <input
-            id="kill"
-            ref="inputKill"
-            v-model="formData.kill"
-            type="number"
-            min="0"
-          >
-        </label>
-        <label for="dead">
-          D
-          <input
-            id="dead"
-            v-model="formData.dead"
-            type="number"
-            min="0"
-          >
-        </label>
-        <label for="assist">
-          A
-          <input
-            id="assist"
-            v-model="formData.assist"
-            type="number"
-            min="0"
-          >
-        </label>
-      </div>
-      <div class="button-group">
-        <button
-          class="button-submit"
-          @click="onSubmit"
-        >
-          submit
-        </button>
-        <button
-          class="button-cancel"
-          @click="onCancel"
-        >
-          cancel
-        </button>
-      </div>
+            <td>{{ item.name }}</td>
+            <td>{{ item.rate }}</td>
+            <td>{{ item.winningRate }}</td>
+            <td>{{ item.kda }}</td>
+            <td>{{ item.kd }}</td>
+            <td>{{ item.total }}</td>
+            <td>{{ item.win }}</td>
+            <td>{{ item.lose }}</td>
+            <td>{{ item.kill }} ({{ (item.kill / item.total).toFixed(0) }})</td>
+            <td>{{ item.dead }} ({{ (item.dead / item.total).toFixed(0) }})</td>
+            <td>{{ item.assist }} ({{ (item.assist / item.total).toFixed(0) }})</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     <div
-      v-for="(item, idx) in history[currentUser]"
-      :key="idx"
-      class="modified-log"
+      v-if="displayPopup"
+      class="popup"
+      :style="{ top: top + 'px', left: left + 'px' }"
     >
-      <div>#{{ idx + 1 }}</div>
-      <div>{{ new Intl.DateTimeFormat('cn', { dateStyle: 'short', timeStyle: 'long' }).format(item.modified).replace('GMT+8', '') }}</div>
-      <div>K:{{ item.kill }}</div>
-      <div>D:{{ item.dead }}</div>
-      <div>A:{{ item.assist }}</div>
-      <div v-show="typeof item.result === 'number'">
-        {{ item.result === 0 ? 'win' : 'lose' }}
+      <div style="display: flex;">
+        <input
+          type="text"
+          :value="history[currentUser][0].rate"
+          style="width: 2rem; text-align: center;"
+          @change="onChangeRate"
+        >
+        <div class="current-user">
+          {{ currentUser }}
+        </div>
+        <div class="switcher">
+          <label
+            for="win"
+            :class="formData.result === 0 ? 'checked' : ''"
+          >
+            胜
+            <input
+              v-show="false"
+              id="win"
+              v-model="formData.result"
+              type="radio"
+              :value="0"
+            >
+          </label>
+          <label
+            for="lose"
+            :class="formData.result === 1 ? 'checked' : ''"
+          >
+            负
+            <input
+              v-show="false"
+              id="lose"
+              v-model="formData.result"
+              type="radio"
+              :value="1"
+            >
+          </label>
+        </div>
+        <div class="input-group">
+          <label for="kill">
+            K
+            <input
+              id="kill"
+              ref="inputKill"
+              v-model="formData.kill"
+              type="number"
+              min="0"
+            >
+          </label>
+          <label for="dead">
+            D
+            <input
+              id="dead"
+              v-model="formData.dead"
+              type="number"
+              min="0"
+            >
+          </label>
+          <label for="assist">
+            A
+            <input
+              id="assist"
+              v-model="formData.assist"
+              type="number"
+              min="0"
+            >
+          </label>
+        </div>
+        <div class="button-group">
+          <button
+            class="button-submit"
+            @click="onSubmit"
+          >
+            submit
+          </button>
+          <button
+            class="button-cancel"
+            @click="onCancel"
+          >
+            cancel
+          </button>
+        </div>
       </div>
-      <button
-        v-if="idx"
-        @click="onRemove(idx)"
+      <div
+        v-for="(item, idx) in history[currentUser]"
+        :key="idx"
+        class="modified-log"
       >
-        remove
-      </button>
+        <div>#{{ idx + 1 }}</div>
+        <div>{{ new Intl.DateTimeFormat('cn', { dateStyle: 'short', timeStyle: 'long' }).format(item.modified).replace('GMT+8', '') }}</div>
+        <div>K:{{ item.kill }}</div>
+        <div>D:{{ item.dead }}</div>
+        <div>A:{{ item.assist }}</div>
+        <div v-show="typeof item.result === 'number'">
+          {{ item.result === 0 ? 'win' : 'lose' }}
+        </div>
+        <button
+          v-if="idx"
+          @click="onRemove(idx)"
+        >
+          remove
+        </button>
+      </div>
     </div>
-  </div>
+  </template>
 </template>
 
 <style scoped>
