@@ -106,8 +106,10 @@ const headers = ref([
   { label: 'A', sortKey: 'assist' },
 ])
 const currentSeason = ref('S1')
+const closedSeason = ref(['S1'])
 
 const onPopup = (e, item) => {
+  if (closedSeason.value.includes(currentSeason.value)) return
   if (displayPopup.value) return
   const { x, y, offsetY, view: { innerWidth } } = e
   const { name } = item
@@ -234,7 +236,10 @@ onBeforeMount(async () => {
   <template v-if="currentPanel === 'LOD'">
     <h2>
       List of DING
-      <select v-model="currentSeason" @change="getHistory">
+      <select
+        v-model="currentSeason"
+        @change="getHistory"
+      >
         <option value="S1">
           S1
         </option>
@@ -464,11 +469,13 @@ onBeforeMount(async () => {
   padding-right: 1rem;
   border-right: 1px solid #999999;
 }
-.sorted {
+.sorted,
+.fl-table thead tr th:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
   font-weight: bold;
   font-size: 1.2em;
+  cursor: pointer;
 }
 .sorted.up::after {
   margin-left: 4px;
