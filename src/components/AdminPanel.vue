@@ -202,6 +202,17 @@ const onRandom = () => {
   alert(`${user1} 和 ${user2}， ${Math.random() > 0.5 ? user2 : user1} 先选。`)
 }
 
+const onChangePanel = (val) => {
+  if (val === 'BFA') {
+    const res = prompt('输入密码')
+    if (res !== 'admin') {
+      alert('密码错误')
+      return
+    }
+  }
+  currentPanel.value = val
+}
+
 onBeforeMount(async () => {
   await getHistory()
 })
@@ -212,13 +223,10 @@ onBeforeMount(async () => {
     v-for="(item, idx) in panels"
     :key="idx"
     :for="item.label.toLowerCase().replaceAll(' ', '-')"
+    class="panels-switcher"
+    :class="{ checked: item.value === currentPanel }"
+    @click="onChangePanel(item.value)"
   >
-    <input
-      :id="item.label.toLowerCase().replaceAll(' ', '-')"
-      v-model="currentPanel"
-      type="radio"
-      :value="item.value"
-    >
     {{ item.label }}
   </label>
   <iframe
@@ -400,6 +408,21 @@ onBeforeMount(async () => {
 </template>
 
 <style scoped>
+.panels-switcher {
+  border: 1px solid #999999;
+  background-color: #999999;
+  padding: 0 4px;
+  margin: 0 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.panels-switcher.checked {
+  background-color: #FFFFFF;
+  color: #999999;
+  font-weight: bold;
+  text-decoration: underline;
+  cursor: unset;
+}
 .popup {
   position: fixed;
   background-color: #FFFFFF;
