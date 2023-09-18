@@ -187,7 +187,7 @@ const onRandom = () => {
   const user1 = USER[random1].name
   const counterpoint = USER[random1].counterpoint
   const user2 = counterpoint[Math.floor(Math.random() * counterpoint.length)]
-  alert(`${user1} 和 ${user2}`)
+  alert(`${user1} 和 ${user2}， ${Math.random() > 0.5 ? user2 : user1} 先选。`)
 }
 </script>
 
