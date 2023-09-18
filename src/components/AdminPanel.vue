@@ -1,17 +1,17 @@
 <script setup>
 import { ref, computed, nextTick, onBeforeMount } from 'vue'
 const USER = [
-  { name: '豪' },
-  { name: '健' },
-  { name: '雄' },
-  { name: '雨' },
-  { name: '尧' },
-  { name: '硕' },
-  { name: '龙' },
-  { name: '妙' },
-  { name: 'bin' },
-  { name: '摆' },
-  { name: 'ding' },
+  { name: '豪', counterpoint: ['健', '雄', '龙'] },
+  { name: '健', counterpoint: ['豪', '雄', '龙'] },
+  { name: '雄', counterpoint: ['健', '豪', '龙'] },
+  { name: '雨', counterpoint: ['尧', '摆', '妙'] },
+  { name: '尧', counterpoint: ['雨', '摆', '妙'] },
+  { name: '硕', counterpoint: ['ding', 'bin'] },
+  { name: '龙', counterpoint: ['健', '雄', '豪'] },
+  { name: '妙', counterpoint: ['雨', '摆', '尧'] },
+  { name: 'bin', counterpoint: ['ding', '硕'] },
+  { name: '摆', counterpoint: ['雨', '妙', '尧'] },
+  { name: 'ding', counterpoint: ['bin', '硕'] },
 ]
 const URL = 'https://rank-history-list-1320720418.cos.ap-guangzhou.myqcloud.com/list.json'
 
@@ -72,7 +72,12 @@ const inputKill = ref(null)
 const currentUser = ref(null)
 const sortState = ref({})
 const sortKey = ref(null)
-
+const panels = ref([
+  { label: 'BPHelper For User', value : 'BFU' },
+  { label: 'BPHelper For Admin', value : 'BFA' },
+  { label: 'List Of DING', value : 'LOD' },
+])
+const currentPanel = ref('LOD')
 const headers = ref([
   { label: '选手', sortKey: 'name' },
   { label: '评级', sortKey: 'rate' },
@@ -177,13 +182,13 @@ onBeforeMount(async () => {
   await getHistory()
 })
 
-const panels = ref([
-  { label: 'BPHelper For User', value : 'BFU' },
-  { label: 'BPHelper For Admin', value : 'BFA' },
-  { label: 'List Of DING', value : 'LOD' },
-])
-
-const currentPanel = ref('LOD')
+const onRandom = () => {
+  const random1 = Math.floor(Math.random() * USER.length)
+  const user1 = USER[random1].name
+  const counterpoint = USER[random1].counterpoint
+  const user2 = counterpoint[Math.floor(Math.random() * counterpoint.length)]
+  alert(`${user1} 和 ${user2}`)
+}
 </script>
 
 <template>
@@ -214,6 +219,7 @@ const currentPanel = ref('LOD')
   />
   <template v-if="currentPanel === 'LOD'">
     <h2>List of DING(9.2 to now)</h2>
+    <button @click="onRandom">选组队长</button>
     <div class="table-wrapper">
       <table class="fl-table">
         <thead>
