@@ -13,7 +13,21 @@ const USER = [
   { name: '摆', counterpoint: ['雨', '妙', '尧'] },
   { name: 'ding', counterpoint: ['bin', '硕'] },
 ]
-const URL = 'https://rank-history-list-1320720418.cos.ap-guangzhou.myqcloud.com/list.json'
+const url = computed(() => {
+  let res = ''
+  switch (currentSeason.value) {
+    case 'S1':
+      res= 'https://rank-history-list-1320720418.cos.ap-guangzhou.myqcloud.com/list.json'
+      break
+    case 'S2':
+      res= 'https://rank-history-list-1320720418.cos.ap-guangzhou.myqcloud.com/S2/list.json'
+      break
+    default:
+      res= 'https://rank-history-list-1320720418.cos.ap-guangzhou.myqcloud.com/list.json'
+      break
+  }
+  return res
+})
 
 const rankList = computed(() => USER.map(({ name }) => ({
   name,
@@ -91,10 +105,10 @@ const headers = ref([
   { label: 'D', sortKey: 'dead' },
   { label: 'A', sortKey: 'assist' },
 ])
+const currentSeason = ref('S1')
 
 const onPopup = (e, item) => {
   if (displayPopup.value) return
-  console.log(e, item)
   const { x, y, offsetY, view: { innerWidth } } = e
   const { name } = item
   currentUser.value = name
@@ -128,7 +142,7 @@ const onSubmit = async () => {
 
 const getHistory = async () => {
   try {
-    await fetch(URL)
+    await fetch(url.value)
     .then((res) => {
       if (res.ok) {
         return res.json()
@@ -148,7 +162,7 @@ const getHistory = async () => {
 }
 
 const asyncHistory = async () => {
-  await fetch(URL, {
+  await fetch(url.value, {
     method: 'PUT',
     body: JSON.stringify(history.value)
   })
@@ -178,10 +192,6 @@ const onSort = (key) => {
   sortKey.value = key
 }
 
-onBeforeMount(async () => {
-  await getHistory()
-})
-
 const onRandom = () => {
   const random1 = Math.floor(Math.random() * USER.length)
   const user1 = USER[random1].name
@@ -189,6 +199,10 @@ const onRandom = () => {
   const user2 = counterpoint[Math.floor(Math.random() * counterpoint.length)]
   alert(`${user1} 和 ${user2}， ${Math.random() > 0.5 ? user2 : user1} 先选。`)
 }
+
+onBeforeMount(async () => {
+  await getHistory()
+})
 </script>
 
 <template>
@@ -218,8 +232,20 @@ const onRandom = () => {
     style="position: fixed; bottom: 0; left: 0; width: 100vw; height: calc(100vh - 1.5rem);"
   />
   <template v-if="currentPanel === 'LOD'">
-    <h2>List of DING(9.2 to now)</h2>
-    <button @click="onRandom">选组队长</button>
+    <h2>
+      List of DING
+      <select v-model="currentSeason" @change="getHistory">
+        <option value="S1">
+          S1
+        </option>
+        <option value="S2">
+          S2
+        </option>
+      </select>
+    </h2>
+    <button @click="onRandom">
+      选组队长
+    </button>
     <div class="table-wrapper">
       <table class="fl-table">
         <thead>
