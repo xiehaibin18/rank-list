@@ -1,0 +1,33 @@
+{
+  "name": "xtimer",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "coverage": "vitest run --coverage",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest --ui"
+  },
+  "dependencies": {
+    "@vitest/browser": "^0.34.1",
+    "@vueuse/core": "^10.3.0",
+    "pinia": "^2.1.6",
+    "vite-plugin-singlefile": "^0.13.5",
+    "vue": "^3.3.4",
+    "webdriverio": "^8.14.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.3",
+    "@vitest/ui": "^0.34.1",
+    "cypress": "^12.17.3",
+    "eslint": "^8.46.0",
+    "eslint-loader": "^4.0.2",
+    "eslint-plugin-vue": "^9.16.1",
+    "jsdom": "^22.1.0",
+    "sass": "^1.64.2",
+    "vite": "^4.4.5",
+    "vitest": "^0.33.0"
+  }
+}
