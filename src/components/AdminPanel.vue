@@ -51,7 +51,13 @@ const rankList = computed(() => USER.map(({ name }) => ({
     kda: 0,
     kd: 0,
   }) : {})
-})))
+})).sort((a, b) => {
+  if (!a[sortKey.value]) return 1
+  if (!b[sortKey.value]) return -1
+  if(a === b) return 0;
+  return (a[sortKey.value] > b[sortKey.value] > 0 ? 1 : -1) * sortState.value[sortKey.value]
+})
+)
 const history = ref({})
 const displayPopup = ref(false)
 const top = ref(0)
@@ -64,9 +70,22 @@ const formData = ref({
 })
 const inputKill = ref(null)
 const currentUser = ref(null)
-const sortKey = ref({
-  rate: null
-})
+const sortState = ref({})
+const sortKey = ref(null)
+
+const headers = ref([
+  { label: '选手', sortKey: 'name' },
+  { label: '评级', sortKey: 'rate' },
+  { label: '胜率', sortKey: 'winningRate' },
+  { label: 'KDA', sortKey: 'kda' },
+  { label: 'KD', sortKey: 'kd' },
+  { label: '场数', sortKey: 'total' },
+  { label: '胜', sortKey: 'win' },
+  { label: '负', sortKey: 'lose' },
+  { label: 'K', sortKey: 'kill' },
+  { label: 'D', sortKey: 'dead' },
+  { label: 'A', sortKey: 'assist' },
+])
 
 const onPopup = (e, item) => {
   if (displayPopup.value) return
@@ -150,7 +169,8 @@ const onChangeRate = async ({ target: { value } = {} } = {}) => {
 }
 
 const onSort = (key) => {
-  sortKey.value[key] = (sortKey.value[key] === 1 || sortKey.value[key] === -1) ? sortKey.value[key] * -1 : 1
+  sortState.value[key] = ref((sortState.value[key] === 1 || sortState.value[key] === -1) ? sortState.value[key] * -1 : 1)
+  sortKey.value = key
 }
 
 onBeforeMount(async () => {
@@ -164,17 +184,14 @@ onBeforeMount(async () => {
     <table class="fl-table">
       <thead>
         <tr>
-          <th>选手</th>
-          <th @click="onSort('rate')">评级</th>
-          <th>胜率</th>
-          <th>KDA</th>
-          <th>KD</th>
-          <th>场数</th>
-          <th>胜</th>
-          <th>负</th>
-          <th>K</th>
-          <th>D</th>
-          <th>A</th>
+          <th
+            v-for="(item, idx) in headers"
+            :key="idx"
+            :class="[{ sorted: item.sortKey === sortKey }, sortState[sortKey] === 1 ? 'up' : 'down']"
+            @click="onSort(item.sortKey)"
+          >
+            {{ item.label }}
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -379,5 +396,19 @@ onBeforeMount(async () => {
   margin-right: 1rem;
   padding-right: 1rem;
   border-right: 1px solid #999999;
+}
+.sorted {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+.sorted.up::after {
+  margin-left: 4px;
+  content: '↓';
+}
+.sorted.down::after {
+  margin-left: 4px;
+  content: '↑';
 }
 </style>
