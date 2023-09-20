@@ -1,11 +1,9 @@
 <script setup>
-import AdminPanel from './components/AdminPanel.vue'
-// import UserPanel from './components/UserPanel.vue'
+import RankList from './components/rankList/RankList.vue'
 </script>
 
 <template>
-  <AdminPanel />
-  <!-- <UserPanel /> -->
+  <RankList />
 </template>
 
 <style scoped>
