@@ -1,13 +1,13 @@
 <script setup>
 import './RankList.scss'
-import { ref, computed, nextTick, onBeforeMount } from 'vue'
+import { ref, computed, nextTick, onBeforeMount, onMounted } from 'vue'
 const USER = [
   { name: '豪', counterpoint: ['健', '雄', '龙'] },
   { name: '健', counterpoint: ['豪', '雄', '龙'] },
   { name: '雄', counterpoint: ['健', '豪', '龙'] },
   { name: '雨', counterpoint: ['尧', '摆', '妙'] },
   { name: '尧', counterpoint: ['雨', '摆', '妙'] },
-  { name: '硕', counterpoint: ['ding', 'bin'] },
+  // { name: '硕', counterpoint: ['ding', 'bin'] },
   { name: '龙', counterpoint: ['健', '雄', '豪'] },
   { name: '妙', counterpoint: ['雨', '摆', '尧'] },
   { name: 'bin', counterpoint: ['ding', '硕'] },
@@ -18,13 +18,13 @@ const url = computed(() => {
   let res = ''
   switch (currentSeason.value) {
     case 'S1':
-      res = 'https://rank-history-list-1320720418.cos.ap-guangzhou.myqcloud.com/list.json'
+      res = '/dRank/rank-list'
       break
     case 'S2':
-      res = 'https://rank-history-list-1320720418.cos.ap-guangzhou.myqcloud.com/S2/list.json'
+      res = '/dRank/S2/rank-list'
       break
     default:
-      res = 'https://rank-history-list-1320720418.cos.ap-guangzhou.myqcloud.com/list.json'
+      res = '/dRank/S2/rank-list'
       break
   }
   return res
@@ -106,7 +106,7 @@ const headers = ref([
   { label: 'D', sortKey: 'dead' },
   { label: 'A', sortKey: 'assist' },
 ])
-const currentSeason = ref('S1')
+const currentSeason = ref('S2')
 const closedSeason = ref(['S1'])
 
 const onPopup = (e, item) => {
@@ -172,7 +172,10 @@ const getHistory = async () => {
 const asyncHistory = async () => {
   await fetch(url.value, {
     method: 'PUT',
-    body: JSON.stringify(history.value)
+    body: JSON.stringify(history.value),
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8'
+    }
   })
     .then((res) => {
       if (!res.ok) {
@@ -208,6 +211,26 @@ const onRandom = () => {
   alert(`${user1} 和 ${user2}， ${Math.random() > 0.5 ? user2 : user1} 先选。`)
 }
 
+const disablePage = ref(false)
+const onRandomOne = () => {
+  disablePage.value = true
+  let duration = 3000
+  const timer = setInterval(() => {
+    duration -= 100
+    if (duration <= 0) {
+      clearInterval(timer)
+      disablePage.value = false
+      return
+    }
+    document.querySelectorAll('.active').forEach((item) => {
+      item.setAttribute('class', '')
+    })
+    const random1 = Math.floor(Math.random() * USER.length)
+    const user1 = USER[random1].name
+    document.getElementById(user1).setAttribute('class', 'active')
+  }, 100)
+}
+
 const onChangePanel = (val) => {
   if (val === 'BFA') {
     const res = prompt('输入密码')
@@ -222,25 +245,57 @@ const onChangePanel = (val) => {
 onBeforeMount(async () => {
   await getHistory()
 })
+
+onMounted(() => {
+  document.addEventListener('contextmenu', event => event.preventDefault());
+  document.onkeydown = function (e) {
+    // disable F12 key
+    if(e.code == 'F12') {
+      return false;
+    }
+    if(e.ctrlKey && e.shiftKey && e.code) {
+      return false;
+    }
+  }
+})
 </script>
 
 <template>
+  <div
+    v-show="disablePage"
+    class="mask"
+  />
   <div class="nav-bar">
-    <label v-for="(item, idx) in panels" :key="idx" :for="item.label.toLowerCase().replaceAll(' ', '-')"
-      class="panels-switcher" :class="{ checked: item.value === currentPanel }" @click="onChangePanel(item.value)">
+    <label
+      v-for="(item, idx) in panels"
+      :key="idx"
+      :for="item.label.toLowerCase().replaceAll(' ', '-')"
+      class="panels-switcher"
+      :class="{ checked: item.value === currentPanel }"
+      @click="onChangePanel(item.value)"
+    >
       {{ item.label }}
     </label>
   </div>
-  <iframe v-if="currentPanel === 'BFU'"
-    src="https://bphelper-user-1320720418.cos.ap-guangzhou.myqcloud.com/BPHelper%20%E9%80%89%E6%89%8B%E7%89%88.html"
-    frameborder="0" style="position: fixed; bottom: 0; left: 0; width: 100vw; height: calc(100vh - 2.5rem);" />
-  <iframe v-if="currentPanel === 'BFA'"
-    src="https://bphelper-admin-1320720418.cos.ap-guangzhou.myqcloud.com/BPHelper%20%E6%95%99%E7%BB%83%E7%89%88.html"
-    frameborder="0" style="position: fixed; bottom: 0; left: 0; width: 100vw; height: calc(100vh - 2.5rem);" />
+  <iframe
+    v-if="currentPanel === 'BFU'"
+    src="/dRank/BFU"
+    frameborder="0"
+    style="position: fixed; bottom: 0; left: 0; width: 100vw; height: calc(100vh - 2.5rem);"
+  />
+  <iframe
+    v-if="currentPanel === 'BFA'"
+    src="/dRank/BFA"
+    frameborder="0"
+    style="position: fixed; bottom: 0; left: 0; width: 100vw; height: calc(100vh - 2.5rem);"
+  />
   <template v-if="currentPanel === 'LOD'">
     <h2>
       List of DING
-      <select v-model="currentSeason" @change="getHistory">
+      <select
+        v-model="currentSeason"
+        @change="getHistory"
+      >
         <option value="S1">
           S1
         </option>
@@ -252,20 +307,31 @@ onBeforeMount(async () => {
     <button @click="onRandom">
       选组队长
     </button>
+    <button @click="onRandomOne">
+      选人
+    </button>
     <div class="table-wrapper">
       <table class="fl-table">
         <thead>
           <tr>
-            <th v-for="(item, idx) in headers" :key="idx"
+            <th
+              v-for="(item, idx) in headers"
+              :key="idx"
               :class="[{ sorted: item.sortKey === sortKey }, sortState[sortKey] === 1 ? 'up' : 'down']"
-              @click="onSort(item.sortKey)">
+              @click="onSort(item.sortKey)"
+            >
               {{ item.label }}
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, idx) in rankList" :key="idx" :class="{ active: currentUser === item.name }"
-            @click="onPopup($event, item)">
+          <tr
+            v-for="(item, idx) in rankList"
+            :id="item.name"
+            :key="idx"
+            :class="{ active: currentUser === item.name }"
+            @click="onPopup($event, item)"
+          >
             <td>{{ item.name }}</td>
             <td>{{ item.rate }}</td>
             <td>{{ item.winningRate }}</td>
@@ -281,60 +347,117 @@ onBeforeMount(async () => {
         </tbody>
       </table>
     </div>
-    <div v-if="displayPopup" class="popup" :style="{ top: top + 'px', left: left + 'px' }">
+    <div
+      v-if="displayPopup"
+      class="popup"
+      :style="{ top: top + 'px', left: left + 'px' }"
+    >
       <div class="input-box">
         <div class="info-group">
-          <input type="text" :value="history[currentUser][0].rate" style="width: 2rem; text-align: center;"
-            @change="onChangeRate">
+          <input
+            type="text"
+            :value="history[currentUser][0].rate"
+            style="width: 2rem; text-align: center;"
+            @change="onChangeRate"
+          >
           <div class="current-user">
             {{ currentUser }}
           </div>
           <div class="switcher">
-            <label for="win" :class="formData.result === 0 ? 'checked' : ''">
+            <label
+              for="win"
+              :class="formData.result === 0 ? 'checked' : ''"
+            >
               胜
-              <input v-show="false" id="win" v-model="formData.result" type="radio" :value="0">
+              <input
+                v-show="false"
+                id="win"
+                v-model="formData.result"
+                type="radio"
+                :value="0"
+              >
             </label>
-            <label for="lose" :class="formData.result === 1 ? 'checked' : ''">
+            <label
+              for="lose"
+              :class="formData.result === 1 ? 'checked' : ''"
+            >
               负
-              <input v-show="false" id="lose" v-model="formData.result" type="radio" :value="1">
+              <input
+                v-show="false"
+                id="lose"
+                v-model="formData.result"
+                type="radio"
+                :value="1"
+              >
             </label>
           </div>
         </div>
         <div class="input-group">
           <label for="kill">
             K
-            <input id="kill" ref="inputKill" v-model="formData.kill" type="number" min="0">
+            <input
+              id="kill"
+              ref="inputKill"
+              v-model="formData.kill"
+              type="number"
+              min="0"
+            >
           </label>
           <label for="dead">
             D
-            <input id="dead" v-model="formData.dead" type="number" min="0">
+            <input
+              id="dead"
+              v-model="formData.dead"
+              type="number"
+              min="0"
+            >
           </label>
           <label for="assist">
             A
-            <input id="assist" v-model="formData.assist" type="number" min="0">
+            <input
+              id="assist"
+              v-model="formData.assist"
+              type="number"
+              min="0"
+            >
           </label>
         </div>
         <div class="button-group">
-          <button class="button-submit" @click="onSubmit">
+          <button
+            class="button-submit"
+            @click="onSubmit"
+          >
             submit
           </button>
-          <button class="button-cancel" @click="onCancel">
+          <button
+            class="button-cancel"
+            @click="onCancel"
+          >
             cancel
           </button>
         </div>
       </div>
-      <div v-for="(item, idx) in history[currentUser]" :key="idx" class="modified-log">
+      <div
+        v-for="(item, idx) in history[currentUser]"
+        :key="idx"
+        class="modified-log"
+      >
         <div>#{{ idx + 1 }}</div>
-        <div>{{ new Intl.DateTimeFormat('cn', {
-          dateStyle: 'short', timeStyle: 'long'
-        }).format(item.modified).replace('GMT+8', '') }}</div>
+        <div>
+          {{ new Intl.DateTimeFormat('cn', {
+            dateStyle: 'short', timeStyle: 'long'
+          }).format(item.modified).replace('GMT+8', '') }}
+        </div>
         <div>K:{{ item.kill }}</div>
         <div>D:{{ item.dead }}</div>
         <div>A:{{ item.assist }}</div>
         <div v-show="typeof item.result === 'number'">
           {{ item.result === 0 ? 'win' : 'lose' }}
         </div>
-        <button v-if="idx" @click="onRemove(idx)">
+        <button
+          v-if="idx"
+          @click="onRemove(idx)"
+        >
           remove
         </button>
       </div>
@@ -343,6 +466,15 @@ onBeforeMount(async () => {
 </template>
 
 <style scoped>
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0);
+  z-index: 100;
+}
 .panels-switcher {
   border: 1px solid #999999;
   background-color: #999999;
